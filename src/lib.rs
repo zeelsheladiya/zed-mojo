@@ -10,6 +10,39 @@ impl MojoExtension {
         _language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
+        let home = std::env::var("HOME").ok();
+        let modular_home = worktree.shell_env().iter()
+            .find(|(key, _)| key == "MODULAR_HOME")
+            .map(|(_, value)| value.to_string())
+            .or_else(|| {
+                if let Some(home_path) = &home {
+                    let default_modular = format!("{}/.modular", home_path);
+                    if std::fs::metadata(&default_modular).is_ok() {
+                        Some(default_modular)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            });
+
+        // Debug logging for modular path
+        if let Some(path) = &modular_home {
+            eprintln!("Mojo Extension: Setting MODULAR_HOME environment variable to '{}'", path);
+        } else {
+            eprintln!("Mojo Extension: Warning - Could not locate MODULAR_HOME or ~/.modular");
+        }
+
+        // Start with the full shell environment to ensure PATH, HOME, etc. are preserved.
+        let mut env: Vec<(String, String)> = worktree.shell_env().to_vec();
+        
+        // Inject MODULAR_HOME if we found it
+        if let Some(path) = &modular_home {
+             // Remove any existing MODULAR_HOME to avoid duplicates/conflicts
+             env.retain(|(k, _)| k != "MODULAR_HOME");
+             env.push(("MODULAR_HOME".to_string(), path.clone()));
+        }
 
         let get_args = |path: &str| -> Vec<String> {
             if path.ends_with("mojo") {
@@ -28,7 +61,7 @@ impl MojoExtension {
                     return Ok(zed::Command {
                         command: path.clone(),
                         args,
-                        env: Default::default(),
+                        env: env.clone(),
                     });
                 }
             } else {
@@ -38,7 +71,7 @@ impl MojoExtension {
                 return Ok(zed::Command {
                     command: "/bin/sh".to_string(),
                     args: vec!["-c".to_string(), script],
-                    env: Default::default(),
+                    env: env.clone(),
                 });
             }
             self.cached_binary_path = None;
@@ -58,7 +91,7 @@ impl MojoExtension {
                     return Ok(zed::Command {
                         command: path.clone(),
                         args: get_args(&path),
-                        env: Default::default(),
+                        env: env.clone(),
                     });
                 }
             }
@@ -85,7 +118,7 @@ impl MojoExtension {
                  return Ok(zed::Command {
                     command: "/bin/sh".to_string(),
                     args: vec!["-c".to_string(), script],
-                    env: Default::default(),
+                    env: env.clone(),
                  });
             }
         }
@@ -98,7 +131,7 @@ impl MojoExtension {
                 return Ok(zed::Command {
                     command: path.clone(),
                     args: get_args(&path),
-                    env: Default::default(),
+                    env: env.clone(),
                 });
             }
         }
@@ -117,7 +150,7 @@ impl MojoExtension {
                      return Ok(zed::Command {
                         command: path.clone(),
                         args: get_args(&path),
-                        env: Default::default(),
+                        env: env.clone(),
                     });
                 }
             }
@@ -158,6 +191,69 @@ impl zed::Extension for MojoExtension {
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
         self.language_server_binary(language_server_id, worktree)
+    }
+
+    fn language_server_initialization_options(
+        &mut self,
+        _language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> zed::Result<Option<zed::serde_json::Value>> {
+        let home = std::env::var("HOME").ok();
+        let modular_home = worktree.shell_env().iter()
+            .find(|(key, _)| key == "MODULAR_HOME")
+            .map(|(_, value)| value.to_string())
+            .or_else(|| {
+                if let Some(home_path) = &home {
+                    let default_modular = format!("{}/.modular", home_path);
+                    if std::fs::metadata(&default_modular).is_ok() {
+                        Some(default_modular)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            });
+
+        if let Some(path) = &modular_home {
+            // Flat structure: { "modularHomePath": "..." }
+            return Ok(Some(zed::serde_json::json!({
+                "modularHomePath": path
+            })));
+        }
+
+        Ok(None)
+    }
+
+    fn language_server_workspace_configuration(
+        &mut self,
+        _language_server_id: &zed::LanguageServerId,
+        worktree: &zed::Worktree,
+    ) -> zed::Result<Option<zed::serde_json::Value>> {
+        let home = std::env::var("HOME").ok();
+        let modular_home = worktree.shell_env().iter()
+            .find(|(key, _)| key == "MODULAR_HOME")
+            .map(|(_, value)| value.to_string())
+            .or_else(|| {
+                if let Some(home_path) = &home {
+                    let default_modular = format!("{}/.modular", home_path);
+                    if std::fs::metadata(&default_modular).is_ok() {
+                        Some(default_modular)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            });
+
+        if let Some(path) = &modular_home {
+            return Ok(Some(zed::serde_json::json!({
+                "modularHomePath": path
+            })));
+        }
+
+        Ok(None)
     }
 }
 

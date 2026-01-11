@@ -2,3 +2,17 @@ name = "Mojo"
 grammar = "mojo"
 path_suffixes = ["mojo", "🔥"]
 line_comments = ["#"]
+brackets = [
+    { start = "{", end = "}", close = true, newline = true },
+    { start = "[", end = "]", close = true, newline = true },
+    { start = "(", end = ")", close = true, newline = true },
+]
+autoclose_before = ";:.,=}])> \n\t"
+surrounds_with = [
+    { start = "{", end = "}" },
+    { start = "[", end = "]" },
+    { start = "(", end = ")" },
+    { start = "\"", end = "\"" },
+    { start = "'", end = "'" },
+]
+word_characters = ["_"]

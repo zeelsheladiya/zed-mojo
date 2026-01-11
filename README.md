@@ -6,6 +6,7 @@
 
 - **Language Server Protocol**: Deep integration with `mojo-lsp` for a full IDE experience.
     - **Smart Detection**: Automatically finds the language server in your `VIRTUAL_ENV`, project `.venv`, `~/.modular` installation, or system `PATH`.
+    - **Robust Environment**: Inherits your full shell environment (`PATH`, `PYTHONPATH`) and cleanly injects `MODULAR_HOME`, ensuring correct execution of subprocesses and Python interop.
     - **Features**: Diagnostics, Hover, Go to Definition, Autocompletion.
 - **Robust Syntax Highlighting**: Uses the official Tree-sitter grammar for accurate highlighting of all Mojo features (`struct`, `fn`, `borrowed`, etc.).
 
