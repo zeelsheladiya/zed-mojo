@@ -1,0 +1,7 @@
+target/
+work/
+lib/
+*.wasm
+.DS_Store
+.venv/
+venv/

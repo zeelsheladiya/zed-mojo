@@ -1,0 +1,15 @@
+id = "mojo"
+name = "Mojo"
+version = "0.0.1"
+schema_version = 1
+authors = ["Zeel Sheladiya"]
+description = "Mojo language support for Zed"
+repository = "https://github.com/zeelsheladiya/zed-mojo"
+
+[grammars.mojo]
+repository = "https://github.com/lsh/tree-sitter-mojo"
+commit = "03966fb3f209bea86844aab3bd0f2158a5a8bb8d"
+
+[language_servers.mojo-lsp]
+name = "mojo-lsp"
+language = "Mojo"
